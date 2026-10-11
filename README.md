@@ -18,15 +18,9 @@ source /home/axelc/Work/garmin/tools/ciq-env.sh
 
 The private key is `/home/axelc/Work/garmin/tools/developer_key.der`; do not copy it into the repository or publish it. The repository ignores generated `.prg`/`.iq` builds and local key files.
 
-Device configurations are separate from the SDK. After Garmin SSO is available, complete the SDK Manager login and download the target device profiles:
+Device configurations are separate from the SDK and are installed under `/home/axelc/Work/garmin/tools/home/.Garmin/ConnectIQ/Devices` for both targets. The environment script's wrappers set Java's `user.home` to the tools directory so `monkeyc`/`monkeydo` resolve those profiles.
 
-```sh
-ciq_manager login
-# Open the login URL printed by the command in a normal browser and authorize.
-ciq_manager device download --device fr245 --device fr970 --include-fonts
-```
-
-The current development environment may still need the simulator's Linux runtime libraries before `connectiq` can launch.
+The simulator's GTK/WebKit runtime libraries are extracted locally under `/home/axelc/Work/garmin/tools/runtime-libs/ubuntu-jammy/` and are loaded by the `connectiq` wrapper; no system packages were installed.
 
 ## Build
 
