@@ -16,6 +16,9 @@ class FocusSession {
     private var mPopup as FocusPopup;
     private var mPopupTimer as Timer.Timer;
     private var mPauseMenuPending as Boolean;
+    private var mSettingsMenuPending as Boolean;
+    private var mSettingsMenuOpen as Boolean;
+    private var mIntervalSettings as FocusIntervalSettings;
 
     function initialize() {
         mSession = null;
@@ -26,6 +29,9 @@ class FocusSession {
         mPopup = new FocusPopup();
         mPopupTimer = new Timer.Timer();
         mPauseMenuPending = false;
+        mSettingsMenuPending = false;
+        mSettingsMenuOpen = false;
+        mIntervalSettings = new FocusIntervalSettings();
     }
 
     function start() as Boolean {
@@ -46,12 +52,16 @@ class FocusSession {
             return false;
         }
 
-        Math.srand(System.getTimer());
-        mClock.start(System.getTimer());
+        var nowMs = System.getTimer();
+        Math.srand(nowMs);
+        mClock.start(nowMs);
+        mClock.setNextInterval(nowMs, mIntervalSettings.intervalMs(Math.rand()));
         mState = :recording;
         mMessage = "";
         mPopup.clear();
         mPauseMenuPending = false;
+        mSettingsMenuPending = false;
+        mSettingsMenuOpen = false;
         mTimer.start(method(:onTick), 1000, true);
         WatchUi.requestUpdate();
         return true;
@@ -195,6 +205,48 @@ class FocusSession {
         FocusMenus.showPausedMenu(self);
     }
 
+    function vibrationIntervalLabel() as String {
+        return mIntervalSettings.label();
+    }
+
+    function increaseVibrationInterval() as Void {
+        mIntervalSettings.increase();
+        rescheduleUpcomingInterval();
+    }
+
+    function decreaseVibrationInterval() as Void {
+        mIntervalSettings.decrease();
+        rescheduleUpcomingInterval();
+    }
+
+    function setRandomVibrationInterval() as Void {
+        mIntervalSettings.enableRandom();
+        rescheduleUpcomingInterval();
+    }
+
+    function showVibrationSettingsMenuWhenReady() as Void {
+        if (popupVisible()) {
+            mSettingsMenuPending = true;
+            return;
+        }
+        mSettingsMenuPending = false;
+        mSettingsMenuOpen = true;
+        FocusMenus.showVibrationSettingsMenu(self);
+    }
+
+    function closeVibrationSettingsMenu() as Void {
+        mSettingsMenuOpen = false;
+        mSettingsMenuPending = false;
+    }
+
+    private function rescheduleUpcomingInterval() as Void {
+        if (mState == :recording || mState == :paused) {
+            var nowMs = System.getTimer();
+            mClock.setNextInterval(nowMs, mIntervalSettings.intervalMs(Math.rand()));
+        }
+        WatchUi.requestUpdate();
+    }
+
     function hasOpenSession() as Boolean {
         return mSession != null;
     }
@@ -224,7 +276,12 @@ class FocusSession {
         WatchUi.requestUpdate();
         if (mPauseMenuPending && mState == :paused) {
             mPauseMenuPending = false;
+            mSettingsMenuPending = false;
             FocusMenus.showPausedMenu(self);
+        } else if (mSettingsMenuPending) {
+            mSettingsMenuPending = false;
+            mSettingsMenuOpen = true;
+            FocusMenus.showVibrationSettingsMenu(self);
         }
     }
 
@@ -234,12 +291,20 @@ class FocusSession {
         }
 
         var nowMs = System.getTimer();
-        if (mClock.consumeAlert(nowMs) && (Attention has :vibrate)) {
-            var index = FocusVibration.indexForRandomValue(Math.rand());
-            var durationMs = FocusVibration.pulseLengthForIndex(index);
-            mPopup.begin(nowMs, durationMs);
-            mPopupTimer.start(method(:onPopupEnd), durationMs, false);
-            Attention.vibrate([FocusVibration.profileForIndex(index)]);
+        if (mClock.consumeAlert(nowMs)) {
+            if (Attention has :vibrate) {
+                var index = FocusVibration.indexForRandomValue(Math.rand());
+                var durationMs = FocusVibration.pulseLengthForIndex(index);
+                mPopup.begin(nowMs, durationMs);
+                mPopupTimer.start(method(:onPopupEnd), durationMs, false);
+                if (mSettingsMenuOpen) {
+                    mSettingsMenuOpen = false;
+                    mSettingsMenuPending = true;
+                    WatchUi.popView(WatchUi.SLIDE_DOWN);
+                }
+                Attention.vibrate([FocusVibration.profileForIndex(index)]);
+            }
+            mClock.setNextInterval(nowMs, mIntervalSettings.intervalMs(Math.rand()));
         }
         WatchUi.requestUpdate();
     }

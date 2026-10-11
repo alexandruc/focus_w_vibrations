@@ -1,10 +1,10 @@
 import Toybox.Lang;
-using Toybox.Math;
 
 class FocusClock {
     var mAccumulatedMs = 0;
     var mSegmentStartMs = 0;
     var mNextAlertMs = 300000;
+    var mIntervalMs = 300000;
     var mRunning = false;
     var mStarted = false;
 
@@ -15,7 +15,8 @@ class FocusClock {
     function start(nowMs as Number) as Void {
         mAccumulatedMs = 0;
         mSegmentStartMs = nowMs;
-        mNextAlertMs = 300000;
+        mIntervalMs = 300000;
+        mNextAlertMs = mIntervalMs;
         mRunning = true;
         mStarted = true;
     }
@@ -44,6 +45,11 @@ class FocusClock {
         return mAccumulatedMs + nowMs - mSegmentStartMs;
     }
 
+    function setNextInterval(nowMs as Number, intervalMs as Number) as Void {
+        mIntervalMs = intervalMs;
+        mNextAlertMs = elapsedAt(nowMs) + intervalMs;
+    }
+
     function consumeAlert(nowMs as Number) as Boolean {
         if (!mRunning) {
             return false;
@@ -52,14 +58,15 @@ class FocusClock {
         if (elapsed < mNextAlertMs) {
             return false;
         }
-        mNextAlertMs = (Math.floor(elapsed / 300000) + 1) * 300000;
+        mNextAlertMs = elapsed + mIntervalMs;
         return true;
     }
 
     function reset() as Void {
         mAccumulatedMs = 0;
         mSegmentStartMs = 0;
-        mNextAlertMs = 300000;
+        mIntervalMs = 300000;
+        mNextAlertMs = mIntervalMs;
         mRunning = false;
         mStarted = false;
     }

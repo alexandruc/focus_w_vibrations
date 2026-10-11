@@ -48,3 +48,20 @@ function testFocusClockResetClearsElapsedTime(logger as Test.Logger) as Boolean 
     clock.reset();
     return clock.elapsedAt(8000) == 0 && !clock.consumeAlert(8000);
 }
+
+(:test)
+function testFocusClockAcceptsConfiguredInterval(logger as Test.Logger) as Boolean {
+    var clock = new FocusClock();
+    clock.start(0);
+    clock.setNextInterval(0, 120000);
+    return !clock.consumeAlert(119999) && clock.consumeAlert(120000) && !clock.consumeAlert(120000);
+}
+
+(:test)
+function testFocusClockReschedulesFromCurrentActiveTime(logger as Test.Logger) as Boolean {
+    var clock = new FocusClock();
+    clock.start(0);
+    if (!clock.consumeAlert(300000)) { return false; }
+    clock.setNextInterval(300000, 60000);
+    return !clock.consumeAlert(359999) && clock.consumeAlert(360000);
+}

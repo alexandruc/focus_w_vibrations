@@ -1,0 +1,5 @@
+<menu id="PausedMenu" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <menu-item id="resume" label="@Strings.MenuResume" />
+    <menu-item id="save" label="@Strings.MenuSave" />
+    <menu-item id="discard" label="@Strings.MenuDiscard" />
+</menu>

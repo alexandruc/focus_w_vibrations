@@ -45,3 +45,15 @@ function testFocusSessionCanDiscard(logger as Test.Logger) as Boolean {
     }
     return session.discard();
 }
+
+(:test)
+function testFocusSessionCanConfigureVibrationInterval(logger as Test.Logger) as Boolean {
+    var session = new FocusSession();
+    if (!session.vibrationIntervalLabel().equals("5 min")) { return false; }
+    session.increaseVibrationInterval();
+    if (!session.vibrationIntervalLabel().equals("6 min")) { return false; }
+    session.decreaseVibrationInterval();
+    if (!session.vibrationIntervalLabel().equals("5 min")) { return false; }
+    session.setRandomVibrationInterval();
+    return session.vibrationIntervalLabel().equals("Random 1-5 min");
+}
