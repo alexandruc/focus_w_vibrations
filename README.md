@@ -20,7 +20,7 @@ The private key is `/home/axelc/Work/garmin/tools/developer_key.der`; do not cop
 
 Device configurations are separate from the SDK and are installed under `/home/axelc/Work/garmin/tools/home/.Garmin/ConnectIQ/Devices` for both targets. The environment script's wrappers set Java's `user.home` to the tools directory so `monkeyc`/`monkeydo` resolve those profiles.
 
-The simulator's GTK/WebKit runtime libraries are extracted locally under `/home/axelc/Work/garmin/tools/runtime-libs/ubuntu-jammy/` and are loaded by the `connectiq` wrapper; no system packages were installed.
+The simulator's GTK/WebKit runtime libraries are extracted locally under `/home/axelc/Work/garmin/tools/runtime-libs/ubuntu-jammy/` and are loaded by the `connectiq` wrapper; no system packages were installed. Do not run `.../bin/simulator` directly because that bypasses the library path; use `connectiq` from the sourced environment or `/home/axelc/Work/garmin/tools/bin/connectiq`.
 
 ## Build
 
