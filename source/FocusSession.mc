@@ -13,6 +13,9 @@ class FocusSession {
     private var mTimer as Timer.Timer;
     private var mState as Symbol;
     private var mMessage as String;
+    private var mPopup as FocusPopup;
+    private var mPopupTimer as Timer.Timer;
+    private var mPauseMenuPending as Boolean;
 
     function initialize() {
         mSession = null;
@@ -20,6 +23,9 @@ class FocusSession {
         mTimer = new Timer.Timer();
         mState = :ready;
         mMessage = "";
+        mPopup = new FocusPopup();
+        mPopupTimer = new Timer.Timer();
+        mPauseMenuPending = false;
     }
 
     function start() as Boolean {
@@ -44,9 +50,21 @@ class FocusSession {
         mClock.start(System.getTimer());
         mState = :recording;
         mMessage = "";
+        mPopup.clear();
+        mPauseMenuPending = false;
         mTimer.start(method(:onTick), 1000, true);
         WatchUi.requestUpdate();
         return true;
+    }
+
+    function startButton() as Boolean {
+        if (isReady()) {
+            return start();
+        }
+        if (isRecording()) {
+            return pause();
+        }
+        return false;
     }
 
     function pause() as Boolean {
@@ -161,6 +179,22 @@ class FocusSession {
         return mState == :paused;
     }
 
+    function popupVisible() as Boolean {
+        return mPopup.isVisible(System.getTimer());
+    }
+
+    function showPausedMenuWhenReady() as Void {
+        if (mState != :paused) {
+            return;
+        }
+        if (popupVisible()) {
+            mPauseMenuPending = true;
+            return;
+        }
+        mPauseMenuPending = false;
+        FocusMenus.showPausedMenu(self);
+    }
+
     function hasOpenSession() as Boolean {
         return mSession != null;
     }
@@ -185,6 +219,15 @@ class FocusSession {
     function onPosition(info as Position.Info) as Void {
     }
 
+    function onPopupEnd() as Void {
+        mPopup.clear();
+        WatchUi.requestUpdate();
+        if (mPauseMenuPending && mState == :paused) {
+            mPauseMenuPending = false;
+            FocusMenus.showPausedMenu(self);
+        }
+    }
+
     function onTick() as Void {
         if (mState != :recording) {
             return;
@@ -193,6 +236,9 @@ class FocusSession {
         var nowMs = System.getTimer();
         if (mClock.consumeAlert(nowMs) && (Attention has :vibrate)) {
             var index = FocusVibration.indexForRandomValue(Math.rand());
+            var durationMs = FocusVibration.pulseLengthForIndex(index);
+            mPopup.begin(nowMs, durationMs);
+            mPopupTimer.start(method(:onPopupEnd), durationMs, false);
             Attention.vibrate([FocusVibration.profileForIndex(index)]);
         }
         WatchUi.requestUpdate();

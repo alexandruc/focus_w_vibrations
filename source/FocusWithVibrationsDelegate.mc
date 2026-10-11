@@ -9,23 +9,27 @@ class FocusWithVibrationsDelegate extends WatchUi.BehaviorDelegate {
         mSession = session;
     }
 
-    function onMenu() as Boolean {
-        var menu = new WatchUi.Menu();
-        menu.setTitle("Focus");
-
+    function onSelect() as Boolean {
         if (mSession.isReady()) {
-            menu.addItem("Start Activity", :start);
-        } else if (mSession.isRecording()) {
-            menu.addItem("Pause", :pause);
-            menu.addItem("Save & Finish", :finish);
-            menu.addItem("Discard", :discard);
-        } else {
-            menu.addItem("Resume", :resume);
-            menu.addItem("Save & Finish", :finish);
-            menu.addItem("Discard", :discard);
+            return mSession.startButton();
         }
+        if (mSession.isRecording()) {
+            if (!mSession.startButton()) {
+                return false;
+            }
+            mSession.showPausedMenuWhenReady();
+            return true;
+        }
+        if (mSession.isPaused()) {
+            mSession.showPausedMenuWhenReady();
+        }
+        return true;
+    }
 
-        WatchUi.pushView(menu, new FocusMenuDelegate(mSession), WatchUi.SLIDE_UP);
+    function onMenu() as Boolean {
+        if (mSession.isPaused()) {
+            mSession.showPausedMenuWhenReady();
+        }
         return true;
     }
 
@@ -34,29 +38,5 @@ class FocusWithVibrationsDelegate extends WatchUi.BehaviorDelegate {
             return true;
         }
         return false;
-    }
-}
-
-class FocusMenuDelegate extends WatchUi.MenuInputDelegate {
-    private var mSession as FocusSession;
-
-    function initialize(session as FocusSession) {
-        MenuInputDelegate.initialize();
-        mSession = session;
-    }
-
-    function onMenuItem(item as Symbol) as Void {
-        if (item == :start) {
-            mSession.start();
-        } else if (item == :pause) {
-            mSession.pause();
-        } else if (item == :resume) {
-            mSession.resume();
-        } else if (item == :finish) {
-            mSession.finish();
-        } else if (item == :discard) {
-            mSession.discard();
-        }
-        WatchUi.requestUpdate();
     }
 }

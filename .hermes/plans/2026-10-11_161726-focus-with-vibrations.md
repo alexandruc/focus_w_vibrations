@@ -7,7 +7,7 @@ Build a Connect IQ watch app named “Focus with vibrations” that starts and s
 - The workspace started empty and now contains the Connect IQ project, README, plan, test suite, and tool setup. The scaffold and implementation have been committed on `main`.
 - Installed Connect IQ SDK 9.2.0 and Temurin JDK 21 under `/home/axelc/Work/garmin/tools/`; added the SDK Manager CLI there and generated a valid RSA developer key at `/home/axelc/Work/garmin/tools/developer_key.der` (permissions 0600).
 - The requested product IDs are `fr245` (Forerunner 245, CIQ 3.3) and `fr970` (Forerunner 970, CIQ 6.0). Both device configurations are installed under `/home/axelc/Work/garmin/tools/home/.Garmin/ConnectIQ/Devices/`.
-- Target-specific `monkeyc -w` builds completed for both products (launcher icon autoscaling warnings only). All 13 Run No Evil tests printed `PASSED (passed=13, failed=0, errors=0)` on each simulator target; `monkeydo` returned exit status 1 after printing that pass summary, so the nonzero runner exit remains an environment/tooling caveat.
+- Target-specific `monkeyc -w` release and test builds completed for both products (launcher icon autoscaling warnings only). All 19 Run No Evil tests printed `PASSED (passed=19, failed=0, errors=0)` on each simulator target; `monkeydo` returned exit status 1 after printing that pass summary, so preserve that exit-status caveat.
 - The Ubuntu 22.04 WebKit/GTK runtime libraries are extracted under `/home/axelc/Work/garmin/tools/runtime-libs/ubuntu-jammy/`; the `connectiq` wrapper adds them locally without installing system packages. Simulator tests ran. Physical watch haptics and Garmin Connect sync/label still require on-device verification.
 - Make this a `watch-app` with `Fit` and `Positioning` permissions. Garmin's RecordSample enables location events and creates a normal FIT recording with ActivityRecording.
 - Garmin's documented sport enum has `Activity.SPORT_GENERIC` (“sport used for sports not on the list”) and `Activity.SUB_SPORT_GENERIC`; it does not document an `SPORT_OTHER` enum. Use `SPORT_GENERIC`, session name `Focus` (suggested maximum 15 characters), and verify the Connect label once profiles/device sync are available.
@@ -15,7 +15,7 @@ Build a Connect IQ watch app named “Focus with vibrations” that starts and s
 
 # Architecture / proposed approach
 
-Use a Garmin Connect IQ `watch-app` with `Toybox.ActivityRecording` for the FIT session and a small `FocusSession` controller to coordinate start/pause/resume/save/discard. Keep elapsed-time, pulse-duration, and formatting rules in pure Monkey C helpers; use one `Toybox.Timer.Timer` at 1-second intervals to refresh the visible timer and check alert deadlines. Render a simple status/timer view with a programmatic WatchUi menu; because both initial targets are Forerunners, call `Toybox.Attention.vibrate()` with one fixed-strength profile and a randomized pulse length up to 3 seconds, not a multi-profile pattern.
+Use a Garmin Connect IQ `watch-app` with `Toybox.ActivityRecording` for the FIT session and a `FocusSession` controller for start/pause/resume/save/discard. The Start/Select behavior starts from Ready and pauses a running session; pausing opens a three-item Resume/Save/Discard menu. Keep elapsed time, pulse duration, time formatting, and popup lifetime in pure helpers; show `Focus`, the active timer, and system-format local time while running, and draw a `FOCUS` overlay for exactly the pulse duration when haptics fire.
 
 # Step-by-step tasks
 
@@ -198,7 +198,7 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testFocusClockExcludesPaus
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
-   RED: the named new test fails. GREEN/full-suite: output includes `PASSED (failures=0, errors=0)`. Commit: `git add source/FocusClock.mc source/FocusClockTests.mc && git commit -m "feat: add pause-aware focus activity clock"`.
+   RED: the named new test fails. GREEN/full-suite: output includes `PASSED (passed=19, failed=0, errors=0)`. Commit: `git add source/FocusClock.mc source/FocusClockTests.mc && git commit -m "feat: add pause-aware focus activity clock"`.
 
 ## 3. Add bounded random vibration patterns (TDD; 2–5 min)
 
@@ -274,7 +274,7 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testRandomValueMapsToValid
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
-   RED: the new tests fail before the pulse helper exists. GREEN/full-suite: expected output includes `PASSED (failures=0, errors=0)`. Commit: `git add source/FocusVibration.mc source/FocusVibrationTests.mc && git commit -m "feat: add bounded random focus vibrations"`.
+   RED: the new tests fail before the pulse helper exists. GREEN/full-suite: expected output includes `PASSED (passed=19, failed=0, errors=0)`. Commit: `git add source/FocusVibration.mc source/FocusVibrationTests.mc && git commit -m "feat: add bounded random focus vibrations"`.
 
 ## 4. Set the normal FIT activity type/name (TDD; 2–5 min)
 
@@ -317,7 +317,7 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testDefaultActivityUsesGen
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
-   RED: the targeted test fails before the helper exists. GREEN/full-suite: expected `PASSED (failures=0, errors=0)`. Commit: `git add source/FocusActivityConfig.mc source/FocusActivityConfigTests.mc && git commit -m "feat: configure generic FIT activity metadata"`.
+   RED: the targeted test fails before the helper exists. GREEN/full-suite: expected `PASSED (passed=19, failed=0, errors=0)`. Commit: `git add source/FocusActivityConfig.mc source/FocusActivityConfigTests.mc && git commit -m "feat: configure generic FIT activity metadata"`.
 4. Do not use a guessed `SPORT_OTHER` constant. The implementation uses the documented generic sport; only call it “Other” in user-facing text if Garmin Connect on the target actually labels it that way.
 
 ## 5. Wire the FIT session controller (TDD; 2–5 min)
@@ -351,7 +351,7 @@ function testFocusSessionCanDiscard(logger as Test.Logger) as Boolean {
    - `resume()` calls `session.start()`; only after success, resume the clock and restart the timer.
    - `finish()` stops the session if it is recording, then calls `session.save()`. On successful save, stop the timer, reset the clock, and clear the session reference. Return/report a failed Boolean rather than claiming success.
    - `discard()` stops an active session, calls `session.discard()`, and resets state only if the discard succeeds.
-   - The timer callback reads `System.getTimer()`, updates the view, and when `consumeAlert()` is true calls one random pattern. It does nothing to elapsed time while paused.
+   - The repeating timer reads `System.getTimer()`, updates the view, and at each due active-time boundary chooses one single-profile random pulse. Use the same profile duration for the `FOCUS` popup timeout. If Start pauses the session while the popup is visible, defer the Resume/Save/Discard menu until that pulse-duration timeout ends.
 3. TDD command sequence (start `connectiq` in another terminal first): build tests and run each named test before implementation; after implementation, run each again and then all tests:
 
 ```sh
@@ -361,22 +361,36 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testFocusSessionCanDiscard
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
-   RED: each named test fails because session operations are not implemented. GREEN/full-suite: output includes `PASSED (failures=0, errors=0)`. Commit: `git add source/FocusSession.mc source/FocusSessionTests.mc && git commit -m "feat: record focus sessions as FIT activities"`.
+   RED: each named test fails because session operations are not implemented. GREEN/full-suite: output includes `PASSED (passed=19, failed=0, errors=0)`. Commit: `git add source/FocusSession.mc source/FocusSessionTests.mc && git commit -m "feat: record focus sessions as FIT activities"`.
 
 ## 6. Build the watch screen and controls (2–5 min)
 
 1. Update `source/FocusWithVibrationsApp.mc` to return the timer `View` and its delegate from `getInitialView()` using the generated app entry-point pattern.
-2. Update `source/FocusWithVibrationsView.mc` to show app title, state (`Ready`, `Recording`, or `Paused`), and an `HH:MM:SS` active elapsed timer. Add `source/FocusFormatTests.mc` first with this test before implementing `FocusFormat.elapsedLabel()` in `source/FocusFormat.mc`:
+2. Update `source/FocusWithVibrationsView.mc` to show the title `Focus`, then the `HH:MM:SS` active elapsed timer, then local time in the device's clock format. Obtain local time with `System.getClockTime()` and select 24-hour vs 12-hour formatting with `System.getDeviceSettings().is24Hour`. Add the 12/24-hour cases to `source/FocusFormatTests.mc` before implementing `FocusFormat.timeOfDayLabel(hour, minute, is24Hour)` in `source/FocusFormat.mc`. Keep Ready/Paused hints below these three lines; draw a centered `FOCUS` overlay while `FocusSession.popupVisible()` is true.
 
 ```monkeyc
 import Toybox.Test;
+import Toybox.Lang;
 
 (:test)
 function testElapsedTimerFormatting(logger as Test.Logger) as Boolean {
-    return FocusFormat.elapsedLabel(0) == "00:00:00" &&
-           FocusFormat.elapsedLabel(59000) == "00:00:59" &&
-           FocusFormat.elapsedLabel(60000) == "00:01:00" &&
-           FocusFormat.elapsedLabel(3600000) == "01:00:00";
+    return FocusFormat.elapsedLabel(0).equals("00:00:00") &&
+           FocusFormat.elapsedLabel(59000).equals("00:00:59") &&
+           FocusFormat.elapsedLabel(60000).equals("00:01:00") &&
+           FocusFormat.elapsedLabel(3600000).equals("01:00:00");
+}
+
+(:test)
+function testClockFormattingFollows24HourSetting(logger as Test.Logger) as Boolean {
+    return FocusFormat.timeOfDayLabel(0, 7, true).equals("00:07") &&
+           FocusFormat.timeOfDayLabel(13, 5, true).equals("13:05");
+}
+
+(:test)
+function testClockFormattingFollows12HourSetting(logger as Test.Logger) as Boolean {
+    return FocusFormat.timeOfDayLabel(0, 7, false).equals("12:07 AM") &&
+           FocusFormat.timeOfDayLabel(12, 0, false).equals("12:00 PM") &&
+           FocusFormat.timeOfDayLabel(13, 5, false).equals("1:05 PM");
 }
 ```
 
@@ -399,10 +413,21 @@ module FocusFormat {
         var seconds = totalSeconds % 60;
         return twoDigits(hours) + ":" + twoDigits(minutes) + ":" + twoDigits(seconds);
     }
+
+    function timeOfDayLabel(hour as Number, minute as Number, is24Hour as Boolean) as String {
+        if (is24Hour) {
+            return twoDigits(hour) + ":" + twoDigits(minute);
+        }
+        var displayHour = hour % 12;
+        if (displayHour == 0) { displayHour = 12; }
+        var suffix = "AM";
+        if (hour >= 12) { suffix = "PM"; }
+        return displayHour.toString() + ":" + twoDigits(minute) + " " + suffix;
+    }
 }
 ```
 
-   GREEN: build/run the named test and the full suite with the SDK simulator running; expected output includes `PASSED (failures=0, errors=0)`:
+   GREEN: build/run the named test and the full suite with the SDK simulator running; expected output includes `PASSED (passed=19, failed=0, errors=0)`:
 
 ```sh
 monkeyc -d "$CIQ_DEVICE" -f monkey.jungle -o bin/FocusWithVibrations.prg -y "$CIQ_KEY" -t
@@ -410,8 +435,8 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testElapsedTimerFormatting
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
-3. Update `source/FocusWithVibrationsDelegate.mc` to open a programmatic `WatchUi.Menu` (`setTitle()`, `addItem()`) with state-appropriate actions: idle=`Start Activity`; recording=`Pause`, `Save & Finish`, `Discard`; paused=`Resume`, `Save & Finish`, `Discard`. Handle selections through `WatchUi.MenuInputDelegate.onMenuItem(item)` and return to the timer view after each action. Do not let Back silently discard or save a recording.
-4. Rebuild and run all unit tests. Expected: `PASSED (failures=0, errors=0)`. Commit: `git add source && git commit -m "feat: add activity timer screen and controls"`.
+3. Update `source/FocusWithVibrationsDelegate.mc` so `onSelect()` starts the session from Ready, pauses it while Recording, and opens `FocusMenus.showPausedMenu()` once Paused. Pressing Start while the vibration popup is still active defers the menu until the popup timer expires. Keep the paused menu limited to `Resume`, `Save`, and `Discard`; Back dismisses the menu without silently saving/discarding. Add `source/FocusMenusTests.mc` first and prove the menu labels with Run No Evil before implementing `source/FocusMenus.mc`.
+4. Rebuild and run all unit tests. Expected: `PASSED (passed=19, failed=0, errors=0)` on each target. Commit: `git add source && git commit -m "feat: add activity timer screen and controls"`.
 
 ## 7. Verify on simulator and target watch (manual integration; 2–5 min setup, longer for 5-minute check)
 
@@ -427,10 +452,10 @@ monkeyc -d "$CIQ_DEVICE" -f monkey.jungle -o bin/FocusWithVibrations.prg -y "$CI
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE"
 ```
 
-2. In the simulator, verify: app launches; Start creates a recording and timer begins; Pause freezes timer; Resume continues without charging paused time; Save & Finish calls stop/save once and returns to Ready; Discard does not leave a saved activity; no runtime exceptions appear. Simulator verification does not prove physical haptics or Garmin Connect's final label.
-3. Install/run the app on the selected watch. Confirm where it appears (Activities list vs app list), start an activity, and check that it syncs as a saved FIT activity in Garmin Connect. Confirm its displayed sport type is “Other” if Garmin exposes that label; otherwise record the actual `Generic`/other label and ask before changing the sport mapping.
-4. Leave one real session recording for at least 5 minutes and confirm exactly one vibration near the 5-minute active-time boundary; pause before the next boundary and confirm no alert while paused; resume and verify the next alert occurs at the remaining active-time threshold. For a target that cannot express multiple haptic segments, verify that a vibration still occurs and remains <=3 seconds.
-5. Expected completion evidence: simulator smoke checklist passes, target device saves/syncs one activity, and Garmin Connect shows the observed sport label. Commit any fixes separately with a focused `fix:` message; rerun the full unit tests and repeat the affected smoke check.
+2. In the simulator, verify: Start/Select begins recording from Ready; Start/Select pauses while recording and shows the paused menu; Resume restarts active time; Save closes the FIT session; Discard closes without saving; the running view shows `Focus`, timer, and system-format local time; the `FOCUS` overlay remains until the pulse duration expires. Verify no runtime exceptions.
+3. Install/run on each selected watch. Confirm activity placement, saved FIT sync, and Garmin Connect's sport label; check physical haptic feedback because simulator tests cannot prove vibration motor behavior.
+4. Wait for the first five-minute active-time boundary, confirm one vibration/popup, then pause before the next threshold and verify no alerts while paused. Resume and verify the alert follows remaining active timer time.
+5. Expected completion evidence: target builds and test suites pass for both IDs, simulator controls/screen behave as specified, and a real watch saves/syncs the activity. Commit any fixes separately and rerun the affected tests.
 
 # Tests / validation
 
@@ -443,7 +468,7 @@ monkeyc -d "$CIQ_DEVICE" -f monkey.jungle -o bin/FocusWithVibrations.prg -y "$CI
 # Run all tests:
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 # Expected final line:
-# PASSED (failures=0, errors=0)
+# PASSED (passed=19, failed=0, errors=0)
 ```
 
 - For a focused test, pass its exact method name after `-t`, e.g. `monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testFocusClockExcludesPauseWhenResumed`.

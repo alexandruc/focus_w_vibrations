@@ -17,4 +17,20 @@ module FocusFormat {
         var seconds = totalSeconds % 60;
         return twoDigits(hours) + ":" + twoDigits(minutes) + ":" + twoDigits(seconds);
     }
+
+    function timeOfDayLabel(hour as Number, minute as Number, is24Hour as Boolean) as String {
+        if (is24Hour) {
+            return twoDigits(hour) + ":" + twoDigits(minute);
+        }
+
+        var displayHour = hour % 12;
+        if (displayHour == 0) {
+            displayHour = 12;
+        }
+        var suffix = "AM";
+        if (hour >= 12) {
+            suffix = "PM";
+        }
+        return displayHour.toString() + ":" + twoDigits(minute) + " " + suffix;
+    }
 }
