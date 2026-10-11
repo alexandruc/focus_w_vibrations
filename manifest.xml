@@ -1,0 +1,21 @@
+<iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
+    <iq:application id="B4977DE8B8CE45189B30E474BE2B279B"
+                    type="watch-app"
+                    name="@Strings.AppName"
+                    entry="FocusWithVibrationsApp"
+                    launcherIcon="@Drawables.LauncherIcon"
+                    minApiLevel="3.2.0">
+        <iq:products>
+            <iq:product id="fr245"/>
+            <iq:product id="fr970"/>
+        </iq:products>
+        <iq:permissions>
+            <iq:uses-permission id="Fit"/>
+            <iq:uses-permission id="Positioning"/>
+        </iq:permissions>
+        <iq:languages>
+            <iq:language>eng</iq:language>
+        </iq:languages>
+        <iq:barrels/>
+    </iq:application>
+</iq:manifest>
