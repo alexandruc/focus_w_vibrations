@@ -12,7 +12,7 @@ class FocusManualIntervalView extends WatchUi.View {
 
     function onUpdate(dc as Dc) as Void {
         var centerX = dc.getWidth() / 2;
-        var rowY = FocusLayout.mainRows(dc.getHeight());
+        var rowY = FocusLayout.manualRows(dc.getHeight());
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);

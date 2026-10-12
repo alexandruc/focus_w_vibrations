@@ -14,7 +14,11 @@ class FocusWithVibrationsView extends WatchUi.View {
     function onUpdate(dc as Dc) as Void {
         var centerX = dc.getWidth() / 2;
         var centerY = dc.getHeight() / 2;
-        var rowY = FocusLayout.mainRows(dc.getHeight());
+        var mediumHeight = dc.getFontHeight(Graphics.FONT_MEDIUM);
+        var smallHeight = dc.getFontHeight(Graphics.FONT_SMALL);
+        var tinyHeight = dc.getFontHeight(Graphics.FONT_XTINY);
+        var rowY = FocusLayout.mainRowsWithFonts(dc.getHeight(), mediumHeight, mediumHeight,
+                                                 smallHeight, smallHeight, tinyHeight);
         var clockTime = System.getClockTime();
         var settings = System.getDeviceSettings();
         var timeLabel = FocusFormat.timeOfDayLabel(clockTime.hour, clockTime.min, settings.is24Hour);
@@ -24,20 +28,20 @@ class FocusWithVibrationsView extends WatchUi.View {
         dc.clear();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(centerX, rowY[0], Graphics.FONT_MEDIUM,
-                    "Focus", Graphics.TEXT_JUSTIFY_CENTER);
+                    "Focus", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.drawText(centerX, rowY[1], Graphics.FONT_MEDIUM,
                     elapsedLabel, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.drawText(centerX, rowY[2], Graphics.FONT_SMALL,
-                    "Time of day", Graphics.TEXT_JUSTIFY_CENTER);
+                    "Time of day", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.drawText(centerX, rowY[3], Graphics.FONT_SMALL,
-                    timeLabel, Graphics.TEXT_JUSTIFY_CENTER);
+                    timeLabel, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         if (mSession.isReady()) {
             dc.drawText(centerX, rowY[4], Graphics.FONT_XTINY,
-                        "Press Start to begin", Graphics.TEXT_JUSTIFY_CENTER);
+                        "Press Start to begin", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         } else if (mSession.isPaused()) {
             dc.drawText(centerX, rowY[4], Graphics.FONT_XTINY,
-                        "Paused - press Start for options", Graphics.TEXT_JUSTIFY_CENTER);
+                        "Paused - press Start for options", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
 
         if (mSession.popupVisible()) {

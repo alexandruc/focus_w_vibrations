@@ -7,7 +7,7 @@ Build a Connect IQ watch app named “Focus with vibrations” that starts and s
 - The workspace started empty and now contains the Connect IQ project, README, plan, test suite, and tool setup. The scaffold and implementation have been committed on `main`.
 - Installed Connect IQ SDK 9.2.0 and Temurin JDK 21 under `/home/axelc/Work/garmin/tools/`; added the SDK Manager CLI there and generated a valid RSA developer key at `/home/axelc/Work/garmin/tools/developer_key.der` (permissions 0600).
 - The requested product IDs are `fr245` (Forerunner 245, CIQ 3.3) and `fr970` (Forerunner 970, CIQ 6.0). Both device configurations are installed under `/home/axelc/Work/garmin/tools/home/.Garmin/ConnectIQ/Devices/`.
-- Target-specific `monkeyc -w` release and test builds completed for both products (launcher icon autoscaling warnings only). All 36 Run No Evil tests printed `PASSED (passed=36, failed=0, errors=0)` on each simulator target; `monkeydo` returned exit status 1 after printing that pass summary, so preserve that exit-status caveat. A normal app launch initially reported a transient `Symbol Not Found` crash on fr245, but subsequent fr245 and fr970 launch attempts remained active through their 10–20 second timeouts. The simulator window was not accessible for visual interaction.
+- Target-specific `monkeyc -w` release and test builds completed for both products (launcher icon autoscaling warnings only). All 37 Run No Evil tests printed `PASSED (passed=37, failed=0, errors=0)` on each simulator target; `monkeydo` returned exit status 1 after printing that pass summary, so preserve that exit-status caveat. A normal app launch initially reported a transient `Symbol Not Found` crash on fr245, but subsequent fr245 and fr970 launch attempts remained active through their 10–20 second timeouts. The simulator window was not accessible for visual interaction.
 - The Ubuntu 22.04 WebKit/GTK runtime libraries are extracted under `/home/axelc/Work/garmin/tools/runtime-libs/ubuntu-jammy/`; the `connectiq` wrapper adds them locally without installing system packages. Simulator tests ran. Physical watch haptics and Garmin Connect sync/label still require on-device verification.
 - Make this a `watch-app` with `Fit` and `Positioning` permissions. Garmin's RecordSample enables location events and creates a normal FIT recording with ActivityRecording.
 - Garmin's documented sport enum has `Activity.SPORT_GENERIC` (“sport used for sports not on the list”) and `Activity.SUB_SPORT_GENERIC`; it does not document an `SPORT_OTHER` enum. Use `SPORT_GENERIC`, session name `Focus` (suggested maximum 15 characters), and verify the Connect label once profiles/device sync are available.
@@ -198,7 +198,7 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testFocusClockExcludesPaus
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
-   RED: the named new test fails. GREEN/full-suite: output includes `PASSED (passed=36, failed=0, errors=0)`. Commit: `git add source/FocusClock.mc source/FocusClockTests.mc && git commit -m "feat: add pause-aware focus activity clock"`.
+   RED: the named new test fails. GREEN/full-suite: output includes `PASSED (passed=37, failed=0, errors=0)`. Commit: `git add source/FocusClock.mc source/FocusClockTests.mc && git commit -m "feat: add pause-aware focus activity clock"`.
 
 ## 3. Add bounded random vibration patterns (TDD; 2–5 min)
 
@@ -274,7 +274,7 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testRandomValueMapsToValid
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
-   RED: the new tests fail before the pulse helper exists. GREEN/full-suite: expected output includes `PASSED (passed=36, failed=0, errors=0)`. Commit: `git add source/FocusVibration.mc source/FocusVibrationTests.mc && git commit -m "feat: add bounded random focus vibrations"`.
+   RED: the new tests fail before the pulse helper exists. GREEN/full-suite: expected output includes `PASSED (passed=37, failed=0, errors=0)`. Commit: `git add source/FocusVibration.mc source/FocusVibrationTests.mc && git commit -m "feat: add bounded random focus vibrations"`.
 
 ## 4. Set the normal FIT activity type/name (TDD; 2–5 min)
 
@@ -317,7 +317,7 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testDefaultActivityUsesGen
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
-   RED: the targeted test fails before the helper exists. GREEN/full-suite: expected `PASSED (passed=36, failed=0, errors=0)`. Commit: `git add source/FocusActivityConfig.mc source/FocusActivityConfigTests.mc && git commit -m "feat: configure generic FIT activity metadata"`.
+   RED: the targeted test fails before the helper exists. GREEN/full-suite: expected `PASSED (passed=37, failed=0, errors=0)`. Commit: `git add source/FocusActivityConfig.mc source/FocusActivityConfigTests.mc && git commit -m "feat: configure generic FIT activity metadata"`.
 4. Do not use a guessed `SPORT_OTHER` constant. The implementation uses the documented generic sport; only call it “Other” in user-facing text if Garmin Connect on the target actually labels it that way.
 
 ## 5. Wire the FIT session controller (TDD; 2–5 min)
@@ -361,7 +361,7 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testFocusSessionCanDiscard
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
-   RED: each named test fails because session operations are not implemented. GREEN/full-suite: output includes `PASSED (passed=36, failed=0, errors=0)`. Commit: `git add source/FocusSession.mc source/FocusSessionTests.mc && git commit -m "feat: record focus sessions as FIT activities"`.
+   RED: each named test fails because session operations are not implemented. GREEN/full-suite: output includes `PASSED (passed=37, failed=0, errors=0)`. Commit: `git add source/FocusSession.mc source/FocusSessionTests.mc && git commit -m "feat: record focus sessions as FIT activities"`.
 
 ## 6. Build the watch screen and controls (2–5 min)
 
@@ -427,7 +427,7 @@ module FocusFormat {
 }
 ```
 
-   GREEN: build/run the named test and the full suite with the SDK simulator running; expected output includes `PASSED (passed=36, failed=0, errors=0)`:
+   GREEN: build/run the named test and the full suite with the SDK simulator running; expected output includes `PASSED (passed=37, failed=0, errors=0)`:
 
 ```sh
 monkeyc -d "$CIQ_DEVICE" -f monkey.jungle -o bin/FocusWithVibrations.prg -y "$CIQ_KEY" -t
@@ -436,7 +436,7 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 ```
 
 3. Update `source/FocusWithVibrationsDelegate.mc` so `onSelect()` starts the session from Ready, pauses it while Recording, and opens `FocusMenus.showPausedMenu()` once Paused. Pressing Start while the vibration popup is still active defers the menu until the popup timer expires. Keep the paused menu limited to `Resume`, `Save`, and `Discard`; Back dismisses the menu without silently saving/discarding. Add `source/FocusMenusTests.mc` first and prove the menu labels with Run No Evil before implementing `source/FocusMenus.mc`.
-4. Rebuild and run all unit tests. Expected: `PASSED (passed=36, failed=0, errors=0)` on each target. Commit: `git add source && git commit -m "feat: add activity timer screen and controls"`.
+4. Rebuild and run all unit tests. Expected: `PASSED (passed=37, failed=0, errors=0)` on each target. Commit: `git add source && git commit -m "feat: add activity timer screen and controls"`.
 
 ## 7. Verify on simulator and target watch (manual integration; 2–5 min setup, longer for 5-minute check)
 
@@ -468,7 +468,7 @@ monkeyc -d "$CIQ_DEVICE" -f monkey.jungle -o bin/FocusWithVibrations.prg -y "$CI
 # Run all tests:
 monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 # Expected final line:
-# PASSED (passed=36, failed=0, errors=0)
+# PASSED (passed=37, failed=0, errors=0)
 ```
 
 - For a focused test, pass its exact method name after `-t`, e.g. `monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t testFocusClockExcludesPauseWhenResumed`.
