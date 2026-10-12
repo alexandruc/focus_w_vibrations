@@ -14,26 +14,27 @@ class FocusWithVibrationsView extends WatchUi.View {
     function onUpdate(dc as Dc) as Void {
         var centerX = dc.getWidth() / 2;
         var centerY = dc.getHeight() / 2;
+        var rowY = FocusLayout.mainRows(dc.getHeight());
         var clockTime = System.getClockTime();
         var settings = System.getDeviceSettings();
-        var timeLabel = FocusFormat.timeOfDayLabel(clockTime.hour, clockTime.min, settings.is24Hour);
+        var timeLabel = FocusFormat.timeOfDayRowLabel(clockTime.hour, clockTime.min, settings.is24Hour);
         var elapsedLabel = FocusFormat.elapsedLabel(mSession.elapsedMs());
 
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(centerX, dc.getHeight() / 4, Graphics.FONT_MEDIUM,
+        dc.drawText(centerX, rowY[0], Graphics.FONT_MEDIUM,
                     "Focus", Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(centerX, centerY, Graphics.FONT_MEDIUM,
+        dc.drawText(centerX, rowY[1], Graphics.FONT_MEDIUM,
                     elapsedLabel, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(centerX, dc.getHeight() * 2 / 3, Graphics.FONT_SMALL,
+        dc.drawText(centerX, rowY[2], Graphics.FONT_SMALL,
                     timeLabel, Graphics.TEXT_JUSTIFY_CENTER);
 
         if (mSession.isReady()) {
-            dc.drawText(centerX, dc.getHeight() * 5 / 6, Graphics.FONT_XTINY,
+            dc.drawText(centerX, rowY[3], Graphics.FONT_XTINY,
                         "Press Start to begin", Graphics.TEXT_JUSTIFY_CENTER);
         } else if (mSession.isPaused()) {
-            dc.drawText(centerX, dc.getHeight() * 5 / 6, Graphics.FONT_XTINY,
+            dc.drawText(centerX, rowY[3], Graphics.FONT_XTINY,
                         "Paused - press Start for options", Graphics.TEXT_JUSTIFY_CENTER);
         }
 

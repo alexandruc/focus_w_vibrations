@@ -4,4 +4,6 @@
     <string id="MenuResume">Resume</string>
     <string id="MenuSave">Save</string>
     <string id="MenuDiscard">Discard</string>
+    <string id="IntervalAuto">Auto</string>
+    <string id="IntervalManual">Manual</string>
 </strings>

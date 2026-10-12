@@ -3,54 +3,50 @@ import Toybox.Lang;
 class FocusIntervalSettings {
     const MIN_MINUTES = 1;
     const MAX_MINUTES = 60;
-    const RANDOM_MAX_MINUTES = 5;
+    const AUTO_MAX_MINUTES = 10;
 
     private var mMinutes as Number;
-    private var mRandom as Boolean;
+    private var mAuto as Boolean;
 
     function initialize() {
         mMinutes = 5;
-        mRandom = false;
+        mAuto = true;
     }
 
     function minutes() as Number {
         return mMinutes;
     }
 
-    function isRandom() as Boolean {
-        return mRandom;
+    function isAuto() as Boolean {
+        return mAuto;
+    }
+
+    function setManualMinutes(minutes as Number) as Void {
+        if (minutes < MIN_MINUTES) {
+            mMinutes = MIN_MINUTES;
+        } else if (minutes > MAX_MINUTES) {
+            mMinutes = MAX_MINUTES;
+        } else {
+            mMinutes = minutes;
+        }
+        mAuto = false;
+    }
+
+    function useAuto() as Void {
+        mAuto = true;
     }
 
     function intervalMs(randomValue as Number) as Number {
-        var selectedMinutes = mMinutes;
-        if (mRandom) {
-            selectedMinutes = (randomValue % RANDOM_MAX_MINUTES) + 1;
+        if (mAuto) {
+            return ((randomValue % AUTO_MAX_MINUTES) + 1) * 60000;
         }
-        return selectedMinutes * 60000;
+        return mMinutes * 60000;
     }
 
     function label() as String {
-        if (mRandom) {
-            return "Random 1-5 min";
+        if (mAuto) {
+            return "Auto 1-10 min";
         }
-        return mMinutes.toString() + " min";
-    }
-
-    function increase() as Void {
-        if (mMinutes < MAX_MINUTES) {
-            mMinutes += 1;
-        }
-        mRandom = false;
-    }
-
-    function decrease() as Void {
-        if (mMinutes > MIN_MINUTES) {
-            mMinutes -= 1;
-        }
-        mRandom = false;
-    }
-
-    function enableRandom() as Void {
-        mRandom = true;
+        return "Manual " + mMinutes.toString() + " min";
     }
 }

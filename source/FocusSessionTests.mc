@@ -47,13 +47,12 @@ function testFocusSessionCanDiscard(logger as Test.Logger) as Boolean {
 }
 
 (:test)
-function testFocusSessionCanConfigureVibrationInterval(logger as Test.Logger) as Boolean {
+function testFocusSessionCanChooseAutoOrManualVibrationInterval(logger as Test.Logger) as Boolean {
     var session = new FocusSession();
-    if (!session.vibrationIntervalLabel().equals("5 min")) { return false; }
-    session.increaseVibrationInterval();
-    if (!session.vibrationIntervalLabel().equals("6 min")) { return false; }
-    session.decreaseVibrationInterval();
-    if (!session.vibrationIntervalLabel().equals("5 min")) { return false; }
-    session.setRandomVibrationInterval();
-    return session.vibrationIntervalLabel().equals("Random 1-5 min");
+    if (!session.vibrationIntervalLabel().equals("Auto 1-10 min")) { return false; }
+    session.setManualVibrationInterval(7);
+    if (!session.vibrationIntervalLabel().equals("Manual 7 min")) { return false; }
+    session.setAutoVibrationInterval();
+    return session.vibrationIntervalLabel().equals("Auto 1-10 min") &&
+           session.manualVibrationMinutes() == 7;
 }

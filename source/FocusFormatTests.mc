@@ -25,3 +25,9 @@ function testClockFormattingFollows12HourSetting(logger as Test.Logger) as Boole
            FocusFormat.timeOfDayLabel(12, 0, false).equals("12:00 PM") &&
            FocusFormat.timeOfDayLabel(13, 5, false).equals("1:05 PM");
 }
+
+(:test)
+function testTimeOfDayRowIncludesLabelAndCurrentTime(logger as Test.Logger) as Boolean {
+    return FocusFormat.timeOfDayRowLabel(13, 5, true).equals("Time of day: 13:05") &&
+           FocusFormat.timeOfDayRowLabel(1, 5, false).equals("Time of day: 1:05 AM");
+}

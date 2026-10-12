@@ -2,15 +2,18 @@ import Toybox.Test;
 import Toybox.Lang;
 
 (:test)
-function testIntervalMenuIncreaseActionUpdatesSettings(logger as Test.Logger) as Boolean {
+function testAutoMenuActionSetsRandomOneToTenMinuteMode(logger as Test.Logger) as Boolean {
     var session = new FocusSession();
+    session.setManualVibrationInterval(7);
     var delegate = new FocusIntervalMenuDelegate(session);
-    return delegate.applyAction(:increase) && session.vibrationIntervalLabel().equals("6 min");
+    return delegate.applyAction(:auto) &&
+           session.vibrationIntervalLabel().equals("Auto 1-10 min") &&
+           session.manualVibrationMinutes() == 7;
 }
 
 (:test)
-function testIntervalMenuRandomActionUpdatesSettings(logger as Test.Logger) as Boolean {
+function testManualMenuActionIsRecognized(logger as Test.Logger) as Boolean {
     var session = new FocusSession();
     var delegate = new FocusIntervalMenuDelegate(session);
-    return delegate.applyAction(:random) && session.vibrationIntervalLabel().equals("Random 1-5 min");
+    return delegate.isManualAction(:manual) && !delegate.isManualAction(:auto);
 }

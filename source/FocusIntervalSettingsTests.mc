@@ -2,47 +2,40 @@ import Toybox.Test;
 import Toybox.Lang;
 
 (:test)
-function testIntervalDefaultsToFiveFixedMinutes(logger as Test.Logger) as Boolean {
+function testIntervalDefaultsToAutoRandomOneThroughTenMinutes(logger as Test.Logger) as Boolean {
     var settings = new FocusIntervalSettings();
-    return settings.minutes() == 5 &&
-           !settings.isRandom() &&
-           settings.intervalMs(0) == 300000 &&
-           settings.label().equals("5 min");
-}
-
-(:test)
-function testRandomModeSelectsOneToFiveMinuteIntervals(logger as Test.Logger) as Boolean {
-    var settings = new FocusIntervalSettings();
-    settings.enableRandom();
-    return settings.isRandom() &&
+    return settings.isAuto() &&
            settings.intervalMs(0) == 60000 &&
-           settings.intervalMs(1) == 120000 &&
-           settings.intervalMs(4) == 300000 &&
-           settings.intervalMs(5) == 60000 &&
-           settings.label().equals("Random 1-5 min");
+           settings.intervalMs(9) == 600000 &&
+           settings.intervalMs(10) == 60000 &&
+           settings.label().equals("Auto 1-10 min");
 }
 
 (:test)
-function testFixedIntervalAdjustsByOneMinuteWithinBounds(logger as Test.Logger) as Boolean {
+function testManualModeUsesSelectedFixedInterval(logger as Test.Logger) as Boolean {
     var settings = new FocusIntervalSettings();
-    var steps = 0;
-    while (steps < 10) {
-        settings.decrease();
-        steps += 1;
-    }
+    settings.setManualMinutes(7);
+    return !settings.isAuto() &&
+           settings.intervalMs(0) == 420000 &&
+           settings.intervalMs(9) == 420000 &&
+           settings.label().equals("Manual 7 min");
+}
+
+(:test)
+function testManualIntervalClampsToOneThroughSixtyMinutes(logger as Test.Logger) as Boolean {
+    var settings = new FocusIntervalSettings();
+    settings.setManualMinutes(0);
     if (settings.minutes() != 1) { return false; }
-    steps = 0;
-    while (steps < 100) {
-        settings.increase();
-        steps += 1;
-    }
+    settings.setManualMinutes(61);
     return settings.minutes() == 60;
 }
 
 (:test)
-function testIncrementAndDecrementSwitchRandomModeToFixed(logger as Test.Logger) as Boolean {
+function testAutoCanBeSelectedAfterManualMode(logger as Test.Logger) as Boolean {
     var settings = new FocusIntervalSettings();
-    settings.enableRandom();
-    settings.increase();
-    return !settings.isRandom() && settings.minutes() == 6 && settings.intervalMs(0) == 360000;
+    settings.setManualMinutes(8);
+    settings.useAuto();
+    return settings.isAuto() &&
+           settings.minutes() == 8 &&
+           settings.label().equals("Auto 1-10 min");
 }

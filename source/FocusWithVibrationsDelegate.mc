@@ -30,9 +30,7 @@ class FocusWithVibrationsDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onMenu() as Boolean {
-        if (mSession.isPaused()) {
-            mSession.showPausedMenuWhenReady();
-        }
+        mSession.showIntervalModeMenuWhenReady();
         return true;
     }
 
@@ -53,8 +51,8 @@ class FocusWithVibrationsDelegate extends WatchUi.BehaviorDelegate {
         if (mUpPressStartedAt != null) {
             var heldMs = System.getTimer() - mUpPressStartedAt;
             mUpPressStartedAt = null;
-            if (FocusLongPress.isSettingsHold(heldMs)) {
-                mSession.showVibrationSettingsMenuWhenReady();
+            if (FocusLongPress.isMenuHold(heldMs)) {
+                return onMenu();
             }
         }
         return true;

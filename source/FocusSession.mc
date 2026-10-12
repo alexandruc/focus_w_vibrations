@@ -205,36 +205,38 @@ class FocusSession {
         FocusMenus.showPausedMenu(self);
     }
 
+    function setManualVibrationInterval(minutes as Number) as Void {
+        mIntervalSettings.setManualMinutes(minutes);
+        rescheduleUpcomingInterval();
+    }
+
+    function setAutoVibrationInterval() as Void {
+        mIntervalSettings.useAuto();
+        rescheduleUpcomingInterval();
+    }
+
+    function manualVibrationMinutes() as Number {
+        return mIntervalSettings.minutes();
+    }
+
     function vibrationIntervalLabel() as String {
         return mIntervalSettings.label();
     }
 
-    function increaseVibrationInterval() as Void {
-        mIntervalSettings.increase();
-        rescheduleUpcomingInterval();
-    }
-
-    function decreaseVibrationInterval() as Void {
-        mIntervalSettings.decrease();
-        rescheduleUpcomingInterval();
-    }
-
-    function setRandomVibrationInterval() as Void {
-        mIntervalSettings.enableRandom();
-        rescheduleUpcomingInterval();
-    }
-
-    function showVibrationSettingsMenuWhenReady() as Void {
+    function showIntervalModeMenuWhenReady() as Void {
+        if (mSettingsMenuOpen || mSettingsMenuPending) {
+            return;
+        }
         if (popupVisible()) {
             mSettingsMenuPending = true;
             return;
         }
         mSettingsMenuPending = false;
         mSettingsMenuOpen = true;
-        FocusMenus.showVibrationSettingsMenu(self);
+        FocusMenus.showIntervalModeMenu(self);
     }
 
-    function closeVibrationSettingsMenu() as Void {
+    function closeIntervalMenu() as Void {
         mSettingsMenuOpen = false;
         mSettingsMenuPending = false;
     }
@@ -281,7 +283,7 @@ class FocusSession {
         } else if (mSettingsMenuPending) {
             mSettingsMenuPending = false;
             mSettingsMenuOpen = true;
-            FocusMenus.showVibrationSettingsMenu(self);
+            FocusMenus.showIntervalModeMenu(self);
         }
     }
 

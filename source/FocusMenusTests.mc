@@ -6,3 +6,8 @@ function testPausedMenuUsesSystemMenuResource(logger as Test.Logger) as Boolean 
     var menu = FocusMenus.createPausedMenu();
     return menu != null;
 }
+
+(:test)
+function testIntervalModeMenuHasSystemMenuResource(logger as Test.Logger) as Boolean {
+    return FocusMenus.createIntervalModeMenu() != null;
+}

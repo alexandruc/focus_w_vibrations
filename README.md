@@ -2,7 +2,9 @@
 
 A Connect IQ watch app that records a FIT activity, displays the active elapsed timer and local time, starts with the watch's Start/Select button, and pauses with that button while recording. Pausing opens a resource-backed system menu with Resume / Save / Discard. Each vibration shows a `FOCUS` popup for the pulse duration.
 
-Long-press Up (800 ms) to configure the alert interval. Fixed mode defaults to 5 minutes and adjusts in one-minute steps from 1 to 60 minutes. Random mode chooses a fresh active-time interval from 1–5 minutes at startup and after each alert; pressing Increase or Decrease switches back to fixed mode. Settings remain in memory while the app stays open but are not persisted across relaunches.
+The main screen shows `Focus`, the active elapsed timer, and a smaller `Time of day: <local time>` row (12/24-hour format follows device settings); all content rows are vertically centered.
+
+Long-press the watch's Up/Menu button (about 800 ms) to enter the system-style interval menu. It has two options: Auto (the default), which chooses a fresh active-time interval from 1–10 minutes at startup and after each alert, and Manual, which opens a counter screen. In Manual, Up/Down adjusts by one minute; Start saves and Back cancels. Manual values are limited to 1–60 minutes and start at 5. The selection remains in memory while the app stays open, but is not persisted across relaunches.
 
 Supported product IDs: `fr245` (Forerunner 245) and `fr970` (Forerunner 970). The manifest targets both. FIT sport/sub-sport are `Activity.SPORT_GENERIC` and `Activity.SUB_SPORT_GENERIC`; Garmin Connect may label this “Other” or “Generic” depending on the product/account.
 
@@ -50,6 +52,6 @@ monkeyc -d "$CIQ_DEVICE" -f monkey.jungle \
 monkeydo "bin/FocusWithVibrations-${CIQ_DEVICE}-tests.prg" "$CIQ_DEVICE" -t
 ```
 
-On this Arch host, `monkeydo` prints the complete `PASSED (passed=29, failed=0, errors=0)` result for each target but exits with status 1 after the summary. Inspect the Run No Evil summary as well as the exit status; do not suppress or rewrite the exit code.
+On this Arch host, `monkeydo` prints the complete `PASSED (passed=37, failed=0, errors=0)` result for each target but exits with status 1 after the summary. Inspect the Run No Evil summary as well as the exit status; do not suppress or rewrite the exit code.
 
 Run on both target IDs before considering the app device-verified. A successful compiler run without `-d` only validates a generic SDK build; it does not prove target compatibility or simulator behavior.
