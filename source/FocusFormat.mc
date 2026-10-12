@@ -33,8 +33,4 @@ module FocusFormat {
         }
         return displayHour.toString() + ":" + twoDigits(minute) + " " + suffix;
     }
-
-    function timeOfDayRowLabel(hour as Number, minute as Number, is24Hour as Boolean) as String {
-        return "Time of day: " + timeOfDayLabel(hour, minute, is24Hour);
-    }
 }

@@ -4,13 +4,13 @@ import Toybox.Lang;
 (:test)
 function testMainScreenRowsAreCenteredOn240PixelDisplay(logger as Test.Logger) as Boolean {
     var y = FocusLayout.mainRows(240);
-    return y[0] == 48 && y[1] == 96 && y[2] == 144 && y[3] == 192 &&
-           y[0] + y[3] == 240 && y[1] + y[2] == 240;
+    return y[0] == 40 && y[1] == 80 && y[2] == 120 && y[3] == 160 && y[4] == 200 &&
+           y[0] + y[4] == 240 && y[1] + y[3] == 240 && y[2] == 120;
 }
 
 (:test)
 function testMainScreenRowsScaleTo454PixelDisplay(logger as Test.Logger) as Boolean {
     var y = FocusLayout.mainRows(454);
-    return y[0] == 90 && y[1] == 181 && y[2] == 272 && y[3] == 363 &&
-           y[0] + y[3] == 453 && y[1] + y[2] == 453;
+    return y[0] == 75 && y[1] == 151 && y[2] == 227 && y[3] == 302 && y[4] == 378 &&
+           y[0] + y[4] == 453 && y[1] + y[3] == 453 && y[2] == 227;
 }
