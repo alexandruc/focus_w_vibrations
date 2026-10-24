@@ -14,24 +14,36 @@ Garmin's `Toybox.Attention.vibrate()` documentation states that Forerunner devic
 
 ## Local toolchain
 
-The SDK, JDK, SDK Manager CLI, and signing key are kept outside this project under `/home/axelc/Work/garmin/tools/`. Load the environment with:
+This repository includes portable wrappers in `scripts/ciq-env.sh` and `scripts/connectiq`; they use project-relative paths and discover the selected SDK. SDK/JDK/device-pack binaries and private signing keys are deliberately not vendored. Install JDK 21, the Connect IQ SDK and the `fr245`/`fr970` device profiles from [Garmin's SDK page](https://developer.garmin.com/connect-iq/sdk/), then either set `CIQ_HOME` and `CIQ_USER_HOME` or install them under the ignored project-local `.ciq-tools/` directory. The wrapper uses `.ciq-tools/home` by default for SDK Manager and Java state.
+
+From the repository root, source the environment and start the simulator with:
 
 ```sh
-source /home/axelc/Work/garmin/tools/ciq-env.sh
+source scripts/ciq-env.sh
+scripts/connectiq
 ```
 
-The private key is `/home/axelc/Work/garmin/tools/developer_key.der`; do not copy it into the repository or publish it. The repository ignores generated `.prg`/`.iq` builds and local key files.
+To sign builds, provide your own private developer key. The default expected path is `.ciq-tools/developer_key.der`; it is ignored by Git. Generate a key only for your own developer account and keep it private:
 
-Device configurations are separate from the SDK and are installed under `/home/axelc/Work/garmin/tools/home/.Garmin/ConnectIQ/Devices` for both targets. The environment script's wrappers set Java's `user.home` to the tools directory so `monkeyc`/`monkeydo` resolve those profiles.
+```sh
+CIQ_TOOLS_HOME="${CIQ_TOOLS_HOME:-$PWD/.ciq-tools}"
+mkdir -p "$CIQ_TOOLS_HOME"
+openssl genrsa -out "$CIQ_TOOLS_HOME/developer_key.pem" 4096
+openssl pkcs8 -topk8 -inform PEM -outform DER \
+  -in "$CIQ_TOOLS_HOME/developer_key.pem" \
+  -out "$CIQ_TOOLS_HOME/developer_key.der" -nocrypt
+chmod 600 "$CIQ_TOOLS_HOME/developer_key.pem" "$CIQ_TOOLS_HOME/developer_key.der"
+export CIQ_KEY="$CIQ_TOOLS_HOME/developer_key.der"
+```
 
-The simulator's GTK/WebKit runtime libraries are extracted locally under `/home/axelc/Work/garmin/tools/runtime-libs/ubuntu-jammy/` and are loaded by the `connectiq` wrapper; no system packages were installed. Do not run `.../bin/simulator` directly because that bypasses the library path; use `connectiq` from the sourced environment or `/home/axelc/Work/garmin/tools/bin/connectiq`.
+If the Linux simulator needs legacy GTK/WebKit libraries, set `CIQ_SIMULATOR_LIBS` to a local compatible library directory; `scripts/connectiq` adds it only to the simulator process. Do not commit downloaded SDK files, runtime libraries, or keys.
 
 ## Build
 
 After device profiles are installed:
 
 ```sh
-source /home/axelc/Work/garmin/tools/ciq-env.sh
+source scripts/ciq-env.sh
 export CIQ_DEVICE=fr245  # or fr970
 mkdir -p bin
 monkeyc -d "$CIQ_DEVICE" -f monkey.jungle \
@@ -41,10 +53,10 @@ monkeyc -d "$CIQ_DEVICE" -f monkey.jungle \
 
 ## Tests
 
-The test methods use Garmin Run No Evil and deterministic injected millisecond timestamps. Start the Connect IQ simulator in one terminal, then build and run tests from another:
+The test methods use Garmin Run No Evil and deterministic injected millisecond timestamps. Start the simulator with `scripts/connectiq` in one terminal, then build and run tests from another:
 
 ```sh
-source /home/axelc/Work/garmin/tools/ciq-env.sh
+source scripts/ciq-env.sh
 export CIQ_DEVICE=fr245  # or fr970
 monkeyc -d "$CIQ_DEVICE" -f monkey.jungle \
   -o "bin/FocusWithVibrations-${CIQ_DEVICE}-tests.prg" \

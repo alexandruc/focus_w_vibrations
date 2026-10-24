@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=ciq-env.sh
+source "$SCRIPT_DIR/ciq-env.sh"
+
+# Some Linux SDK builds need local compatibility libraries. Keep them scoped to
+# the simulator process; never export this legacy GTK stack for the whole shell.
+if [ -d "$CIQ_SIMULATOR_LIBS" ]; then
+    export LD_LIBRARY_PATH="$CIQ_SIMULATOR_LIBS${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
+exec "$CIQ_HOME/bin/connectiq" "$@"

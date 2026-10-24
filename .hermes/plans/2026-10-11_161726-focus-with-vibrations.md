@@ -5,10 +5,10 @@ Build a Connect IQ watch app named “Focus with vibrations” that starts and s
 # Current context / assumptions
 
 - The workspace started empty and now contains the Connect IQ project, README, plan, test suite, and tool setup. The scaffold and implementation have been committed on `main`.
-- Installed Connect IQ SDK 9.2.0 and Temurin JDK 21 under `/home/axelc/Work/garmin/tools/`; added the SDK Manager CLI there and generated a valid RSA developer key at `/home/axelc/Work/garmin/tools/developer_key.der` (permissions 0600).
-- The requested product IDs are `fr245` (Forerunner 245, CIQ 3.3) and `fr970` (Forerunner 970, CIQ 6.0). Both device configurations are installed under `/home/axelc/Work/garmin/tools/home/.Garmin/ConnectIQ/Devices/`.
+- Installed Connect IQ SDK 9.2.0 and Temurin JDK 21 under `$CIQ_TOOLS_HOME/`; added the SDK Manager CLI there and generated a valid RSA developer key at `$CIQ_TOOLS_HOME/developer_key.der` (permissions 0600).
+- The requested product IDs are `fr245` (Forerunner 245, CIQ 3.3) and `fr970` (Forerunner 970, CIQ 6.0). Both device configurations are installed under `$CIQ_USER_HOME/.Garmin/ConnectIQ/Devices/`.
 - Target-specific `monkeyc -w` release and test builds completed for both products; all 42 Run No Evil tests printed `PASSED (passed=42, failed=0, errors=0)` on each target. Auto mode persistence, manual minutes persistence, menu ordering, and two-line popup content/layout are covered by tests. Positioning APIs and permission were removed. Earlier FR245 simulator testing confirmed the Auto menu returns to the main view after removing the extra `popView`; the simulator stayed alive with no core. Current full-screen popup rendering compiles for both targets, but its visual appearance has not been rechecked because simulator input is awaiting explicit approval.
-- The Ubuntu 22.04 WebKit/GTK runtime libraries are extracted under `/home/axelc/Work/garmin/tools/runtime-libs/ubuntu-jammy/`; the `connectiq` wrapper adds them locally without installing system packages. Simulator tests ran. Physical watch haptics and Garmin Connect sync/label still require on-device verification.
+- The Ubuntu 22.04 WebKit/GTK runtime libraries are extracted under `$CIQ_TOOLS_HOME/runtime-libs/ubuntu-jammy/`; the `connectiq` wrapper adds them locally without installing system packages. Simulator tests ran. Physical watch haptics and Garmin Connect sync/label still require on-device verification.
 - Make this a `watch-app` with the `Fit` permission only; omit `Positioning` because the app does not use GPS or record a route/distance.
 - Garmin's documented sport enum has `Activity.SPORT_GENERIC` (“sport used for sports not on the list”) and `Activity.SUB_SPORT_GENERIC`; it does not document an `SPORT_OTHER` enum. Use `SPORT_GENERIC`, session name `Focus` (suggested maximum 15 characters), and verify the Connect label once profiles/device sync are available.
 - Garmin documents that Forerunner devices do not support multi-profile vibration patterns. This app uses one fixed-strength pulse with randomized 500–3,000 ms duration. The interval is Auto (fresh random 1–10 active minutes per alert) or Manual (a custom 1–60 minutes counter adjusted with Up/Down). Auto is the default; Manual starts at 5 minutes. Pausing freezes active time, and a delayed tick emits at most one alert.
@@ -21,10 +21,10 @@ Use a Garmin Connect IQ `watch-app` with `Toybox.ActivityRecording` for the FIT 
 
 ## 0. SDK, device profiles, and simulator runtime (installed locally)
 
-1. Installed Connect IQ SDK 9.2.0 from Garmin's official Linux release into `/home/axelc/Work/garmin/tools/home/.Garmin/ConnectIQ/Sdks/` using the SDK Manager CLI. Installed Temurin JDK 21 at `/home/axelc/Work/garmin/tools/java/temurin-21/` and added `/home/axelc/Work/garmin/tools/ciq-env.sh` to configure paths.
+1. Installed Connect IQ SDK 9.2.0 from Garmin's official Linux release into `$CIQ_USER_HOME/.Garmin/ConnectIQ/Sdks/` using the SDK Manager CLI. Installed Temurin JDK 21 at `$CIQ_TOOLS_HOME/java/temurin-21/` and added `scripts/ciq-env.sh` to configure paths.
 2. The selected product IDs are `fr245` and `fr970`; both official configurations were downloaded into the SDK Manager's tools home. The local wrappers set Java's `user.home` so the compiler and simulator find them.
-3. Generated a 4096-bit RSA developer key at `/home/axelc/Work/garmin/tools/developer_key.pem` and `/home/axelc/Work/garmin/tools/developer_key.der`; both are mode 0600 and outside the Git worktree.
-4. The simulator libraries are now present under `tools/runtime-libs/ubuntu-jammy/usr/lib/x86_64-linux-gnu/`; `tools/bin/connectiq` loads them locally without changing system packages. Confirm with `source /home/axelc/Work/garmin/tools/ciq-env.sh && ldd "$CIQ_HOME/bin/simulator"` (no `not found` lines when run with the same `LD_LIBRARY_PATH` as the wrapper).
+3. Generated a 4096-bit RSA developer key at `$CIQ_TOOLS_HOME/developer_key.pem` and `$CIQ_TOOLS_HOME/developer_key.der`; both are mode 0600 and outside the Git worktree.
+4. The simulator libraries are now present under `$CIQ_TOOLS_HOME/runtime-libs/ubuntu-jammy/usr/lib/x86_64-linux-gnu/`; `scripts/connectiq` loads them locally without changing system packages. Confirm with `source scripts/ciq-env.sh && ldd "$CIQ_HOME/bin/simulator"` (no `not found` lines when run with the same `LD_LIBRARY_PATH` as the wrapper).
 
 ## 1. Scaffold and establish the build baseline (completed)
 
@@ -477,11 +477,11 @@ monkeydo bin/FocusWithVibrations.prg "$CIQ_DEVICE" -t
 
 # Risks, tradeoffs, and open questions
 
-- Both target profiles are installed. Compiler wrappers now set `JAVA_TOOL_OPTIONS=-Duser.home=/home/axelc/Work/garmin/tools/home`; use the wrappers loaded by `source /home/axelc/Work/garmin/tools/ciq-env.sh` for target builds and tests.
+- Both target profiles are installed. Compiler wrappers now set `JAVA_TOOL_OPTIONS=-Duser.home=$CIQ_USER_HOME`; use the wrappers loaded by `source scripts/ciq-env.sh` for target builds and tests.
 - Does Garmin Connect render `SPORT_GENERIC` as “Other,” “Generic,” or another label on the two watches? Garmin's Connect IQ enum documents `SPORT_GENERIC`, not `SPORT_OTHER`; verify on device before promising the exact UI label.
 - Garmin documents that Forerunner models do not render multi-profile vibration patterns. This build uses randomized single-pulse durations (500–3,000 ms) at fixed strength; if the user requires multi-segment on/off patterns, these initial target devices cannot provide them through the documented Connect IQ API.
-- The Ubuntu 22.04 WebKit/GTK packages were extracted under `tools/runtime-libs/ubuntu-jammy/` to satisfy the simulator without system-level package changes. Launch it with the `connectiq` wrapper so `LD_LIBRARY_PATH` is set.
-- Positioning is enabled during active recording so standard FIT sessions can include GPS updates. Verify outdoors/on-device; simulator location simulation alone does not prove GPS behavior.
+- The Ubuntu 22.04 WebKit/GTK packages were extracted under `$CIQ_TOOLS_HOME/runtime-libs/ubuntu-jammy/` to satisfy the simulator without system-level package changes. Launch it with the `connectiq` wrapper so `LD_LIBRARY_PATH` is set.
+- The app does not use Positioning and records no GPS route or distance; verify the time-based FIT activity on-device.
 - The activity title sent to FIT is deliberately `Focus`, not the full app title, to stay within Garmin's suggested 15-character session-name limit.
 
 # References

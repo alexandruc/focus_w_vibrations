@@ -3,4 +3,5 @@
 *.prg
 *.iq
 bin/
+.ciq-tools/
 *.debug.xml
