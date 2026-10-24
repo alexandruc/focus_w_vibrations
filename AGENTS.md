@@ -4,9 +4,9 @@ Tool-agnostic project guidance for coding agents and contributors. This replaces
 
 ## Project
 
-Focus with vibrations is a Garmin Connect IQ watch app for Forerunner 245 (`fr245`) and Forerunner 970 (`fr970`). It records a FIT activity named `Focus`, displays active elapsed time and local time, and vibrates at configurable intervals.
+Focus with vibrations is a Garmin Connect IQ watch app. Its manifest targets the current catalogued Connect IQ watch-app product IDs in the fēnix 6 generation range and later (116 profiles at API level 3.0+, as of the current SDK catalog). It spans families including Forerunner, fēnix, Venu, Instinct, epix, MARQ, D2, Approach, Descent, and Enduro. The exact product IDs are in `manifest.xml`; non-watch devices and devices that cannot run watch apps are excluded. The app records a FIT activity named `Focus`, displays active elapsed time and local time, and vibrates at configurable intervals.
 
-The app requests only the `Fit` permission. It does not use Positioning and must not record GPS, route, or distance data. The FIT sport/sub-sport are `Activity.SPORT_GENERIC` and `Activity.SUB_SPORT_GENERIC`; do not promise an exact Garmin Connect label without checking a real sync.
+The app requests only the `Fit` permission. It does not use Positioning and must not record GPS, route, or distance data. FIT sport/sub-sport use generic numeric values `0`/`0`, which are the underlying `Activity.SPORT_GENERIC`/`SUB_SPORT_GENERIC` IDs; use the numeric IDs for API 3.0 targets where those named constants are absent. Do not promise an exact Garmin Connect label without checking a real sync.
 
 ## Behavior and design constraints
 
@@ -14,7 +14,7 @@ The app requests only the `Fit` permission. It does not use Positioning and must
 - Active elapsed time excludes pauses. A delayed timer tick should emit at most one alert and schedule the next interval from active time.
 - Auto is the default: choose a fresh random interval from 1–10 active minutes at session start and after each alert. Its selection notice is the centered, two-row full-screen text `Random value up to 10 min`.
 - Manual intervals are 1–60 minutes, initially 5. The Auto/Manual choice and manual minutes persist between app runs; open the interval menu with the current choice first.
-- Forerunner vibration is a single fixed-strength pulse per alert, with randomized duration from 500–3,000 ms. Do not implement or promise multi-profile vibration patterns on these targets.
+- Use one fixed-strength pulse per alert and randomize its duration from 500–3,000 ms. Haptic strength and multi-profile pattern support vary by watch; do not promise multi-segment patterns or physical haptic behavior without device testing.
 - The main screen centers `Focus`, the elapsed timer, a `Time of day` label, and the actual local time on separate rows. The notification covers the screen for the pulse duration.
 - Use native resource-backed system menus. A menu selection completes its own view transition; do not add a redundant `WatchUi.popView()` after selecting a menu item.
 
@@ -26,11 +26,11 @@ Never commit private signing material, downloaded SDK/toolchain files, runtime l
 
 ## Build and test
 
-Run from the repository root. Start the simulator in one terminal with `scripts/connectiq`; source the environment in another terminal before invoking SDK commands. Build and run Run No Evil tests for both device IDs before considering target compatibility verified:
+Run from the repository root. Start the simulator in one terminal with `scripts/connectiq`; source the environment in another terminal before invoking SDK commands. Compile every product ID in `manifest.xml` after installing its profile. Run the full Run No Evil suite on the minimum-API target (`approachs62`, API 3.0) and a current API 6.0 target such as `fr970`:
 
 ```sh
 source scripts/ciq-env.sh
-export CIQ_DEVICE=fr245  # repeat with fr970
+export CIQ_DEVICE=approachs62  # repeat with fr970
 monkeyc -d "$CIQ_DEVICE" -f monkey.jungle \
   -o "bin/FocusWithVibrations-${CIQ_DEVICE}-tests.prg" \
   -y "$CIQ_KEY" -t
@@ -49,6 +49,7 @@ Inspect both the test summary and command status; do not mask failures. Also run
 ## Relevant source files
 
 - `source/FocusSession.mc`: FIT lifecycle, active-time timer, interval persistence, popup state, and alert scheduling.
+- `source/FocusActivityConfig.mc`: short FIT activity name and generic sport/sub-sport numeric IDs (0/0) for API 3.0 compatibility.
 - `source/FocusIntervalSettings.mc`: Auto/Manual interval calculation and bounds.
 - `source/FocusIntervalMenuDelegate.mc`, `source/FocusMenus.mc`, and `resources/menus/`: interval and paused menus.
 - `source/FocusWithVibrationsView.mc`, `source/FocusLayout.mc`, and popup/layout helpers: screen and notification rendering.
