@@ -29,9 +29,7 @@ class FocusIntervalMenuDelegate extends WatchUi.MenuInputDelegate {
     function onMenuItem(item as Symbol) as Void {
         System.println("[AUTO-TRACE] onMenuItem callback entered");
         if (applyAction(item)) {
-            System.println("[AUTO-TRACE] onMenuItem auto accepted; popView begin");
-            WatchUi.popView(WatchUi.SLIDE_DOWN);
-            System.println("[AUTO-TRACE] onMenuItem popView returned");
+            System.println("[AUTO-TRACE] onMenuItem auto accepted; letting system menu finish transition");
         } else if (isManualAction(item)) {
             System.println("[AUTO-TRACE] onMenuItem manual selected");
             var counter = new FocusMinuteCounter(mSession.manualVibrationMinutes());
