@@ -63,7 +63,6 @@ monkeyc -d "$CIQ_DEVICE" -f monkey.jungle \
   -y "$CIQ_KEY" -t
 monkeydo "bin/FocusWithVibrations-${CIQ_DEVICE}-tests.prg" "$CIQ_DEVICE" -t
 ```
-
-On this Arch host, `monkeydo` prints the complete `PASSED (passed=42, failed=0, errors=0)` result for each target but exits with status 1 after the summary. Inspect the Run No Evil summary as well as the exit status; do not suppress or rewrite the exit code.
+Inspect the Run No Evil summary as well as the exit status; do not suppress or rewrite the exit code.
 
 Run on both target IDs before considering the app device-verified. A successful compiler run without `-d` only validates a generic SDK build; it does not prove target compatibility or simulator behavior.
