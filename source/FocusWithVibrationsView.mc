@@ -11,6 +11,14 @@ class FocusWithVibrationsView extends WatchUi.View {
         mSession = session;
     }
 
+    function onShow() as Void {
+        System.println("[AUTO-TRACE] main view onShow");
+    }
+
+    function onHide() as Void {
+        System.println("[AUTO-TRACE] main view onHide");
+    }
+
     function onUpdate(dc as Dc) as Void {
         var centerX = dc.getWidth() / 2;
         var centerY = dc.getHeight() / 2;

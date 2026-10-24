@@ -211,8 +211,11 @@ class FocusSession {
     }
 
     function setAutoVibrationInterval() as Void {
+        System.println("[AUTO-TRACE] session.setAutoVibrationInterval entered");
         mIntervalSettings.useAuto();
+        System.println("[AUTO-TRACE] session interval mode=" + mIntervalSettings.label());
         rescheduleUpcomingInterval();
+        System.println("[AUTO-TRACE] session.setAutoVibrationInterval returned");
     }
 
     function manualVibrationMinutes() as Number {
@@ -224,29 +227,46 @@ class FocusSession {
     }
 
     function showIntervalModeMenuWhenReady() as Void {
+        System.println("[AUTO-TRACE] showIntervalModeMenuWhenReady entered");
         if (mSettingsMenuOpen || mSettingsMenuPending) {
+            System.println("[AUTO-TRACE] interval menu request ignored; already open/pending");
             return;
         }
         if (popupVisible()) {
+            System.println("[AUTO-TRACE] interval menu deferred while popup visible");
             mSettingsMenuPending = true;
             return;
         }
         mSettingsMenuPending = false;
         mSettingsMenuOpen = true;
+        System.println("[AUTO-TRACE] interval menu state set open; pushing view");
         FocusMenus.showIntervalModeMenu(self);
+        System.println("[AUTO-TRACE] interval menu push returned");
     }
 
     function closeIntervalMenu() as Void {
+        System.println("[AUTO-TRACE] closeIntervalMenu entered");
         mSettingsMenuOpen = false;
         mSettingsMenuPending = false;
+        System.println("[AUTO-TRACE] closeIntervalMenu returned");
     }
 
     private function rescheduleUpcomingInterval() as Void {
+        System.println("[AUTO-TRACE] rescheduleUpcomingInterval entered");
         if (mState == :recording || mState == :paused) {
             var nowMs = System.getTimer();
-            mClock.setNextInterval(nowMs, mIntervalSettings.intervalMs(Math.rand()));
+            var randomValue = Math.rand();
+            var intervalMs = mIntervalSettings.intervalMs(randomValue);
+            System.println("[AUTO-TRACE] reschedule values random=" + randomValue.toString() + " interval_ms=" + intervalMs.toString());
+            System.println("[AUTO-TRACE] clock.setNextInterval begin");
+            mClock.setNextInterval(nowMs, intervalMs);
+            System.println("[AUTO-TRACE] clock.setNextInterval returned");
+        } else {
+            System.println("[AUTO-TRACE] reschedule skipped; session not recording/paused");
         }
+        System.println("[AUTO-TRACE] WatchUi.requestUpdate begin");
         WatchUi.requestUpdate();
+        System.println("[AUTO-TRACE] WatchUi.requestUpdate returned");
     }
 
     function hasOpenSession() as Boolean {
