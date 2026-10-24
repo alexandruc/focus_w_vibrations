@@ -8,7 +8,8 @@ function testAutoMenuActionSetsRandomOneToTenMinuteMode(logger as Test.Logger) a
     var delegate = new FocusIntervalMenuDelegate(session);
     return delegate.applyAction(:auto) &&
            session.vibrationIntervalLabel().equals("Auto 1-10 min") &&
-           session.manualVibrationMinutes() == 7;
+           session.manualVibrationMinutes() == 7 &&
+           session.popupText().equals("Random value up to 10 min");
 }
 
 (:test)

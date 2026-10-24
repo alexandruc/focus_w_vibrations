@@ -21,6 +21,8 @@ class FocusIntervalMenuDelegate extends WatchUi.MenuInputDelegate {
             System.println("[AUTO-TRACE] applyAction auto session updated");
             mSession.closeIntervalMenu();
             System.println("[AUTO-TRACE] applyAction auto menu state closed");
+            mSession.showAutoSelectionPopup();
+            System.println("[AUTO-TRACE] applyAction auto confirmation popup queued");
             return true;
         }
         return false;

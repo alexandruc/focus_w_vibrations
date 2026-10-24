@@ -21,7 +21,22 @@ class FocusWithVibrationsView extends WatchUi.View {
 
     function onUpdate(dc as Dc) as Void {
         var centerX = dc.getWidth() / 2;
-        var centerY = dc.getHeight() / 2;
+
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
+        if (mSession.popupVisible()) {
+            var popupLines = mSession.popupLines();
+            var popupFont = popupLines.size() > 1 ? Graphics.FONT_SMALL : Graphics.FONT_MEDIUM;
+            var popupLineHeight = dc.getFontHeight(popupFont);
+            var popupRows = FocusLayout.popupRows(dc.getHeight(), popupLineHeight, popupLines.size());
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+            for (var i = 0; i < popupLines.size(); i += 1) {
+                dc.drawText(centerX, popupRows[i], popupFont, popupLines[i],
+                            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            }
+            return;
+        }
+
         var mediumHeight = dc.getFontHeight(Graphics.FONT_MEDIUM);
         var smallHeight = dc.getFontHeight(Graphics.FONT_SMALL);
         var tinyHeight = dc.getFontHeight(Graphics.FONT_XTINY);
@@ -32,8 +47,6 @@ class FocusWithVibrationsView extends WatchUi.View {
         var timeLabel = FocusFormat.timeOfDayLabel(clockTime.hour, clockTime.min, settings.is24Hour);
         var elapsedLabel = FocusFormat.elapsedLabel(mSession.elapsedMs());
 
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.clear();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(centerX, rowY[0], Graphics.FONT_MEDIUM,
                     "Focus", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
@@ -50,18 +63,6 @@ class FocusWithVibrationsView extends WatchUi.View {
         } else if (mSession.isPaused()) {
             dc.drawText(centerX, rowY[4], Graphics.FONT_XTINY,
                         "Paused - press Start for options", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        }
-
-        if (mSession.popupVisible()) {
-            var popupWidth = dc.getWidth() * 3 / 4;
-            var popupHeight = dc.getFontHeight(Graphics.FONT_MEDIUM) * 2;
-            var popupX = (dc.getWidth() - popupWidth) / 2;
-            var popupY = (dc.getHeight() - popupHeight) / 2;
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_WHITE);
-            dc.fillRectangle(popupX, popupY, popupWidth, popupHeight);
-            dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
-            dc.drawText(centerX, centerY, Graphics.FONT_MEDIUM, "FOCUS",
-                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
     }
 }

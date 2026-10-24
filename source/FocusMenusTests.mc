@@ -8,6 +8,14 @@ function testPausedMenuUsesSystemMenuResource(logger as Test.Logger) as Boolean 
 }
 
 (:test)
-function testIntervalModeMenuHasSystemMenuResource(logger as Test.Logger) as Boolean {
-    return FocusMenus.createIntervalModeMenu() != null;
+function testIntervalModeMenuCreatesSystemMenu(logger as Test.Logger) as Boolean {
+    return FocusMenus.createIntervalModeMenu(true) != null;
+}
+
+(:test)
+function testIntervalModeOrderStartsWithSavedChoice(logger as Test.Logger) as Boolean {
+    var autoOrder = FocusMenus.intervalModeOrder(true);
+    var manualOrder = FocusMenus.intervalModeOrder(false);
+    return autoOrder[0] == :auto && autoOrder[1] == :manual &&
+           manualOrder[0] == :manual && manualOrder[1] == :auto;
 }

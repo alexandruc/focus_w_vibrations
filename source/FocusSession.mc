@@ -1,13 +1,16 @@
 import Toybox.ActivityRecording;
+import Toybox.Application;
 import Toybox.Attention;
 import Toybox.Lang;
 import Toybox.Math;
-import Toybox.Position;
 import Toybox.System;
 import Toybox.Timer;
 import Toybox.WatchUi;
 
 class FocusSession {
+    const INTERVAL_MODE_STORAGE_KEY = "focus_interval_mode";
+    const INTERVAL_MINUTES_STORAGE_KEY = "focus_interval_minutes";
+
     private var mSession as Session?;
     private var mClock as FocusClock;
     private var mTimer as Timer.Timer;
@@ -32,6 +35,7 @@ class FocusSession {
         mSettingsMenuPending = false;
         mSettingsMenuOpen = false;
         mIntervalSettings = new FocusIntervalSettings();
+        loadIntervalSettings();
     }
 
     function start() as Boolean {
@@ -41,12 +45,10 @@ class FocusSession {
             return false;
         }
 
-        Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
         mSession = ActivityRecording.createSession(FocusActivityConfig.options());
         if (!mSession.start()) {
             mSession.discard();
             mSession = null;
-            Position.enableLocationEvents(Position.LOCATION_DISABLE, null);
             mMessage = "Start failed";
             WatchUi.requestUpdate();
             return false;
@@ -89,7 +91,6 @@ class FocusSession {
 
         mClock.pause(System.getTimer());
         mTimer.stop();
-        Position.enableLocationEvents(Position.LOCATION_DISABLE, null);
         mState = :paused;
         mMessage = "";
         WatchUi.requestUpdate();
@@ -101,9 +102,7 @@ class FocusSession {
             return false;
         }
 
-        Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
         if (!mSession.start()) {
-            Position.enableLocationEvents(Position.LOCATION_DISABLE, null);
             mMessage = "Resume failed";
             WatchUi.requestUpdate();
             return false;
@@ -131,7 +130,6 @@ class FocusSession {
         }
 
         mTimer.stop();
-        Position.enableLocationEvents(Position.LOCATION_DISABLE, null);
         if (!mSession.save()) {
             mState = :paused;
             mMessage = "Save failed";
@@ -161,7 +159,6 @@ class FocusSession {
         }
 
         mTimer.stop();
-        Position.enableLocationEvents(Position.LOCATION_DISABLE, null);
         if (!mSession.discard()) {
             mState = :paused;
             mMessage = "Discard failed";
@@ -193,6 +190,23 @@ class FocusSession {
         return mPopup.isVisible(System.getTimer());
     }
 
+    function popupText() as String {
+        return mPopup.message();
+    }
+
+    function popupLines() as Array<String> {
+        return mPopup.displayLines();
+    }
+
+    function showAutoSelectionPopup() as Void {
+        var durationMs = 2500;
+        var nowMs = System.getTimer();
+        mPopup.beginMessage(nowMs, durationMs, "Random value up to 10 min");
+        mPopupTimer.stop();
+        mPopupTimer.start(method(:onPopupEnd), durationMs, false);
+        WatchUi.requestUpdate();
+    }
+
     function showPausedMenuWhenReady() as Void {
         if (mState != :paused) {
             return;
@@ -207,12 +221,14 @@ class FocusSession {
 
     function setManualVibrationInterval(minutes as Number) as Void {
         mIntervalSettings.setManualMinutes(minutes);
+        persistIntervalSettings();
         rescheduleUpcomingInterval();
     }
 
     function setAutoVibrationInterval() as Void {
         System.println("[AUTO-TRACE] session.setAutoVibrationInterval entered");
         mIntervalSettings.useAuto();
+        persistIntervalSettings();
         System.println("[AUTO-TRACE] session interval mode=" + mIntervalSettings.label());
         rescheduleUpcomingInterval();
         System.println("[AUTO-TRACE] session.setAutoVibrationInterval returned");
@@ -220,6 +236,10 @@ class FocusSession {
 
     function manualVibrationMinutes() as Number {
         return mIntervalSettings.minutes();
+    }
+
+    function isAutoVibrationInterval() as Boolean {
+        return mIntervalSettings.isAuto();
     }
 
     function vibrationIntervalLabel() as String {
@@ -249,6 +269,28 @@ class FocusSession {
         mSettingsMenuOpen = false;
         mSettingsMenuPending = false;
         System.println("[AUTO-TRACE] closeIntervalMenu returned");
+    }
+
+    private function loadIntervalSettings() as Void {
+        var savedMinutes = Application.Storage.getValue(INTERVAL_MINUTES_STORAGE_KEY);
+        if (savedMinutes != null) {
+            mIntervalSettings.setManualMinutes(savedMinutes as Number);
+        }
+
+        var savedMode = Application.Storage.getValue(INTERVAL_MODE_STORAGE_KEY);
+        if (savedMode != null && savedMode.equals("manual")) {
+            if (savedMinutes == null) {
+                mIntervalSettings.setManualMinutes(5);
+            }
+        } else {
+            mIntervalSettings.useAuto();
+        }
+    }
+
+    private function persistIntervalSettings() as Void {
+        var mode = mIntervalSettings.isAuto() ? "auto" : "manual";
+        Application.Storage.setValue(INTERVAL_MODE_STORAGE_KEY, mode);
+        Application.Storage.setValue(INTERVAL_MINUTES_STORAGE_KEY, mIntervalSettings.minutes());
     }
 
     private function rescheduleUpcomingInterval() as Void {
@@ -288,9 +330,6 @@ class FocusSession {
             return "Paused";
         }
         return "Ready";
-    }
-
-    function onPosition(info as Position.Info) as Void {
     }
 
     function onPopupEnd() as Void {

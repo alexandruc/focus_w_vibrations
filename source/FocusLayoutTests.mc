@@ -20,6 +20,15 @@ function testMainRowsScaleWithFontMetricsOn454PixelDisplay(logger as Test.Logger
 }
 
 (:test)
+function testPopupRowsCenterOneOrTwoLinesOnScreen(logger as Test.Logger) as Boolean {
+    var single = FocusLayout.popupRows(240, 12, 1);
+    var double = FocusLayout.popupRows(240, 12, 2);
+    return single[0] == 120 &&
+           double.size() == 2 && double[0] == 114 && double[1] == 126 &&
+           double[0] + double[1] == 240;
+}
+
+(:test)
 function testManualCounterRowsStayCentered(logger as Test.Logger) as Boolean {
     var y = FocusLayout.manualRows(240);
     return y[0] == 48 && y[1] == 96 && y[2] == 144 && y[3] == 192 &&
