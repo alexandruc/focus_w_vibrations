@@ -8,6 +8,16 @@ Long-press the watch's Up/Menu button (about 800 ms) to enter the native system-
 
 The manifest targets all 116 currently catalogued Connect IQ watch-app profiles in the selected generation range, from the fēnix 6 era onward, with minimum API level 3.0. It covers Forerunner, fēnix, Venu, Instinct, epix, MARQ, D2, Approach, Descent, Enduro, and other watch families; exact product IDs are listed in `manifest.xml`. The list follows Garmin's [Compatible Devices catalog](https://developer.garmin.com/connect-iq/compatible-devices/) and the SDK Manager product catalog. Non-watch product classes and devices that cannot run watch apps are excluded. FIT sport/sub-sport are the generic enum values (`0`/`0`); Garmin Connect may label them “Other” or “Generic” depending on the product/account. The app does not request Positioning and records no GPS route or distance.
 
+## Screenshots
+
+Main screen (ready state):
+
+![Main screen showing Focus, elapsed timer, time of day, and Start prompt](screenshots/screenshot-2026-10-25_20-30-55.png)
+
+Manual interval counter:
+
+![Manual interval counter screen](screenshots/screenshot-2026-10-25_20-33-37.png)
+
 ## Haptic behavior
 
 This app emits one fixed-strength vibration pulse per alert and randomizes its duration from 500–3,000 ms. Hardware haptic strength and pattern support vary by watch; the app does not rely on multi-segment patterns. Verify motor behavior on physical devices.
